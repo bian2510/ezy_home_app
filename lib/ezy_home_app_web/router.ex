@@ -18,6 +18,8 @@ defmodule EzyHomeAppWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    live "/inventory", InventoryLive.Index, :index
   end
 
   # Other scopes may use custom stacks.
