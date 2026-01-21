@@ -3,13 +3,18 @@ defmodule EzyHomeApp.Repo.Migrations.CreateProducts do
 
   def change do
     create table(:products) do
-      add :name, :string
-      add :sku, :string
-      add :current_stock, :integer
-      add :min_stock, :integer
+      add :name, :string, null: false
+      add :sku, :string, null: false
+      add :description, :text
+      add :current_stock, :integer, default: 0, null: false
+      add :min_stock_threshold, :integer, default: 5, null: false
       add :mercadolibre_id, :string
+      add :price, :decimal, precision: 10, scale: 2
 
-      timestamps(type: :utc_datetime)
+      timestamps()
     end
+
+    create unique_index(:products, [:sku])
+    create index(:products, [:mercadolibre_id])
   end
 end

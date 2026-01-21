@@ -5,15 +5,21 @@ defmodule EzyHomeApp.Inventory.Bundle do
   schema "bundles" do
     field :name, :string
     field :sku, :string
+    field :description, :string
     field :mercadolibre_id, :string
+    field :active, :boolean, default: true
 
-    timestamps(type: :utc_datetime)
+    has_many :bundle_items, EzyHomeApp.Inventory.BundleItem
+
+    has_many :products, through: [:bundle_items, :product]
+
+    timestamps()
   end
 
-  @doc false
   def changeset(bundle, attrs) do
     bundle
-    |> cast(attrs, [:name, :sku, :mercadolibre_id])
-    |> validate_required([:name, :sku, :mercadolibre_id])
+    |> cast(attrs, [:name, :sku, :description, :mercadolibre_id, :active])
+    |> validate_required([:name, :sku])
+    |> unique_constraint(:sku)
   end
 end
