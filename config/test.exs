@@ -8,7 +8,7 @@ import Config
 config :ezy_home_app, EzyHomeApp.Repo,
   username: "postgres",
   password: "postgres",
-  hostname: "localhost",
+  hostname: "127.0.0.1",
   database: "ezy_home_app_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
