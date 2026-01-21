@@ -1,4 +1,4 @@
-defmodule EzyHomeApp.Inventory.Product do
+defmodule EzyHomeApp.Inventory.Schemas.Product do
   use Ecto.Schema
   import Ecto.Changeset
 
