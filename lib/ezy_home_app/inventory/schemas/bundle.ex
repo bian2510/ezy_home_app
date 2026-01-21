@@ -9,7 +9,7 @@ defmodule EzyHomeApp.Inventory.Schemas.Bundle do
     field :mercadolibre_id, :string
     field :active, :boolean, default: true
 
-    has_many :bundle_items, EzyHomeApp.Inventory.BundleItem
+    has_many :bundle_items, EzyHomeApp.Inventory.Schemas.BundleItem
 
     has_many :products, through: [:bundle_items, :product]
 

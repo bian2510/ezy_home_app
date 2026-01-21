@@ -5,8 +5,8 @@ use Ecto.Schema
   schema "bundle_items" do
     field :quantity, :integer, default: 1
 
-    belongs_to :bundle, EzyHomeApp.Inventory.Bundle
-    belongs_to :product, EzyHomeApp.Inventory.Product
+    belongs_to :bundle, EzyHomeApp.Inventory.Schemas.Bundle
+    belongs_to :product, EzyHomeApp.Inventory.Schemas.Product
 
     timestamps()
   end
