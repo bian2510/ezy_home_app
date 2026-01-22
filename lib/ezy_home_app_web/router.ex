@@ -20,6 +20,7 @@ defmodule EzyHomeAppWeb.Router do
     get "/", PageController, :home
 
     live "/inventory", InventoryLive.Index, :index
+    live "/inventory/new", InventoryLive.Index, :new
   end
 
   # Other scopes may use custom stacks.

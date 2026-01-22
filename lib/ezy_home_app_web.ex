@@ -53,6 +53,8 @@ defmodule EzyHomeAppWeb do
       use Phoenix.LiveView
 
       unquote(html_helpers())
+
+      import EzyHomeAppWeb.CoreComponents
     end
   end
 
