@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # 1. Base de Datos
+  db:
+    image: postgres:15-alpine
+    container_name: ezy_home_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ezy_home_app_dev
+    ports:
+      - "5432:5432" # Expone el puerto por si quieres conectarte con un cliente externo (DBeaver, etc)
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  # 2. Tu Aplicación Phoenix
+  web:
+    container_name: ezy_home_web
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "4000:4000"
+    environment:
+      # Configuración para que Phoenix hable con el contenedor 'db'
+      DB_HOSTNAME: db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: ezy_home_app_dev
+      # Secret key base (para dev no importa que sea pública)
+      SECRET_KEY_BASE: "tu_secreto_super_largo_y_seguro_para_desarrollo_docker_123456789"
+    volumes:
+      # A. Montamos tu carpeta actual (.) en /app dentro del contenedor
+      # Esto permite que los cambios que hagas en VS Code se vean adentro.
+      - .:/app
+      
+      # B. TRUCO IMPORTANTE: Creamos volúmenes anónimos para deps y _build
+      # Esto evita que los archivos compilados de Linux se mezclen con los de Windows/Mac
+      # y hace que la compilación sea más rápida.
+      - /app/deps
+      - /app/_build
+    depends_on:
+      - db
+    # Comando para asegurar que las dependencias se instalen antes de arrancar
+    command: sh -c "mix deps.get && mix ecto.setup && mix phx.server"
+
+volumes:
+  pg_data:
