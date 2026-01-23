@@ -113,4 +113,27 @@ defmodule EzyHomeApp.Inventory.Bundles do
     |> Repo.get!(item_id)
     |> Repo.delete()
   end
+
+  def sell_bundle(bundle_id, quantity \\ 1) do
+    # 1. Buscamos el pack y sus ingredientes
+    bundle = get!(bundle_id)
+
+    # 2. Abrimos una transacción (Todo o Nada)
+    Repo.transaction(fn ->
+      Enum.each(bundle.bundle_items, fn item ->
+        product = item.product
+        total_to_remove = item.quantity * quantity
+        new_stock = product.current_stock - total_to_remove
+
+        # Verificación de seguridad
+        if new_stock < 0 do
+          Repo.rollback("No hay suficiente stock de #{product.name}")
+        else
+          product
+          |> Ecto.Changeset.change(current_stock: new_stock)
+          |> Repo.update!()
+        end
+      end)
+    end)
+  end
 end

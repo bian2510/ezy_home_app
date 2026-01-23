@@ -33,5 +33,5 @@ defmodule EzyHomeApp.Inventory do
   # --- FUNCIONES ESPECIALES (Stock Virtual) ---
   defdelegate calculate_bundle_stock(bundle), to: Bundles, as: :calculate_stock
   defdelegate list_bundles_with_stock, to: Bundles, as: :list_with_virtual_stock
-  defdelegate sell_bundle(id, qty \\ 1), to: Bundles, as: :sell
+  defdelegate sell_bundle(id, quantity \\ 1), to: Bundles, as: :sell
 end

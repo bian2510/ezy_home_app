@@ -51,5 +51,23 @@ defmodule EzyHomeApp.Inventory.BundlesLogicTest do
       # Si tengo 4 mouses físicos y el pack usa 2... puedo armar 2 packs.
       assert Inventory.calculate_bundle_stock(bundle) == 2
     end
+
+    test "vender un pack descuenta el stock fisico de los ingredientes", %{bundle: bundle, teclado: teclado, mouse: mouse} do
+      # Preparamos: Pack lleva 1 Teclado y 1 Mouse
+      Inventory.add_item_to_bundle(bundle.id, teclado.id)
+      Inventory.add_item_to_bundle(bundle.id, mouse.id)
+
+      # Stock inicial: Teclado=10, Mouse=4
+
+      # ACCIÓN: Vendemos 1 Pack
+      assert {:ok, _} = Inventory.sell_bundle(bundle.id)
+
+      # VERIFICACIÓN:
+      teclado_actualizado = Inventory.get_product!(teclado.id)
+      mouse_actualizado = Inventory.get_product!(mouse.id)
+
+      assert teclado_actualizado.current_stock == 9  # Bajó 1
+      assert mouse_actualizado.current_stock == 3    # Bajó 1
+    end
   end
 end

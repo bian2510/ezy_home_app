@@ -109,6 +109,7 @@
                 <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">Pack SKU</th>
                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Contenido</th>
                 <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Disponibles para armar</th>
+                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Acciones</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 bg-white">
@@ -135,6 +136,17 @@
                     <span class={if no_stock?, do: "text-red-600 font-bold", else: "text-indigo-600 font-bold text-lg"}>
                       <%= bundle.virtual_stock %> Packs
                     </span>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-right">
+                    <button 
+                      phx-click="sell_pack" 
+                      phx-value-id={bundle.id}
+                      data-confirm="¿Confirmar venta de 1 unidad? Se descontarán los ingredientes."
+                      class="rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm hover:bg-green-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                      disabled={bundle.virtual_stock <= 0}
+                    >
+                      💰 Vender
+                    </button>
                   </td>
                 </tr>
               <% end %>

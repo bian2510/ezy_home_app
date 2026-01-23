@@ -90,4 +90,25 @@ defmodule EzyHomeAppWeb.InventoryLive.Index do
      |> assign(products: Inventory.list_products())
      |> assign(bundles: Inventory.list_bundles_with_stock())} # Recargamos packs por si el producto era parte de uno
   end
+
+  @impl true
+  def handle_event("sell_pack", %{"id" => id}, socket) do
+    case Inventory.sell_bundle(id) do
+      {:ok, _result} ->
+        # SI VENDEMOS, TODO CAMBIA:
+        # 1. Bajó el stock físico de los productos.
+        # 2. Bajó el stock virtual de este pack.
+        # 3. Pudo bajar el stock virtual de OTROS packs que compartan ingredientes.
+
+        # Por eso, recargamos ambas listas:
+        {:noreply,
+         socket
+         |> put_flash(:info, "¡Venta registrada! Stock descontado.")
+         |> assign(:products, Inventory.list_products()) # Refresca tabla de arriba
+         |> assign(:bundles, Inventory.list_bundles_with_stock())} # Refresca tabla de abajo
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Error: #{reason}")}
+    end
+  end
 end
