@@ -8,9 +8,9 @@ defmodule EzyHomeApp.Inventory.Schemas.Bundle do
     field :description, :string
     field :mercadolibre_id, :string
     field :active, :boolean, default: true
+    field :price, :decimal
 
     has_many :bundle_items, EzyHomeApp.Inventory.Schemas.BundleItem
-
     has_many :products, through: [:bundle_items, :product]
 
     timestamps()
@@ -18,7 +18,7 @@ defmodule EzyHomeApp.Inventory.Schemas.Bundle do
 
   def changeset(bundle, attrs) do
     bundle
-    |> cast(attrs, [:name, :sku, :description, :mercadolibre_id, :active])
+    |> cast(attrs, [:name, :sku, :description, :mercadolibre_id, :active, :price])
     |> validate_required([:name, :sku])
     |> unique_constraint(:sku)
   end
