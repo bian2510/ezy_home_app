@@ -1,4 +1,4 @@
-defmodule EzyHomeApp.InventoryTest do
+defmodule EzyHomeApp.Inventory.ProductsTest do
   use EzyHomeApp.DataCase
 
   alias EzyHomeApp.Inventory
