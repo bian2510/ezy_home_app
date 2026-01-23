@@ -72,4 +72,16 @@ defmodule EzyHomeAppWeb.InventoryLive.Index do
      |> assign(products: Inventory.list_products())
      |> assign(bundles: Inventory.list_bundles_with_stock())}
   end
+
+  @impl true
+  def handle_event("delete", %{"id" => id}, socket) do
+    product = Inventory.get_product!(id)
+    {:ok, _} = Inventory.delete_product(product)
+
+    {:noreply,
+     socket
+     |> put_flash(:info, "Producto eliminado correctamente.")
+     |> assign(products: Inventory.list_products())
+     |> assign(bundles: Inventory.list_bundles_with_stock())} # Recargamos packs por si el producto era parte de uno
+  end
 end
