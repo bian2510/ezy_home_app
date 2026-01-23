@@ -22,6 +22,12 @@ defmodule EzyHomeAppWeb.InventoryLive.Index do
     |> assign(:product, %Product{}) # Pasamos un producto vacío al formulario
   end
 
+  defp apply_action(socket, :edit, %{"id" => id}) do
+    socket
+    |> assign(:page_title, "Editar Producto")
+    |> assign(:product, Inventory.get_product!(id)) # Buscamos el producto por ID
+  end
+
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "Inventario")

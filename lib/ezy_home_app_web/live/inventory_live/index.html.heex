@@ -144,7 +144,7 @@
 </div>
 
 <.modal 
-  :if={@live_action == :new} 
+  :if={@live_action in [:new, :edit]} 
   id="product-modal" 
   show 
   on_cancel={~p"/inventory"}  

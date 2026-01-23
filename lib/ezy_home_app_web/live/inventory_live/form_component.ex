@@ -75,10 +75,25 @@ defmodule EzyHomeAppWeb.InventoryLive.FormComponent do
   end
 
   @impl true
+  @impl true
   def handle_event("save", %{"product" => product_params}, socket) do
+    save_product(socket, socket.assigns.action, product_params)
+  end
+
+  defp save_product(socket, :edit, product_params) do
+    case Inventory.update_product(socket.assigns.product, product_params) do
+      {:ok, _product} ->
+        send(self(), {:saved, "Producto actualizado correctamente"})
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign_form(socket, changeset)}
+    end
+  end
+
+  defp save_product(socket, :new, product_params) do
     case Inventory.create_product(product_params) do
       {:ok, _product} ->
-        # Enviar mensaje al padre (Index)
         send(self(), {:saved, "Producto creado exitosamente"})
         {:noreply, socket}
 
