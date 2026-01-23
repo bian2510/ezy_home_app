@@ -29,4 +29,13 @@ defmodule EzyHomeApp.Inventory.Products do
   def delete(%Product{} = product) do
     Repo.delete(product)
   end
+
+  def search(query) do
+    search_term = "%#{query}%"
+
+    Product
+    |> where([p], ilike(p.name, ^search_term) or ilike(p.sku, ^search_term))
+    |> limit(5)
+    |> Repo.all()
+  end
 end

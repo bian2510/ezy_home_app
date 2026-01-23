@@ -10,7 +10,11 @@ defmodule EzyHomeApp.Inventory.Bundles do
     Repo.all(Bundle)
   end
 
-  def get!(id), do: Repo.get!(Bundle, id)
+  def get!(id) do
+    Bundle
+    |> Repo.get!(id)
+    |> Repo.preload(bundle_items: :product)
+  end
 
   def create(attrs \\ %{}) do
     %Bundle{}
@@ -70,5 +74,43 @@ defmodule EzyHomeApp.Inventory.Bundles do
       end)
       bundle
     end)
+  end
+
+  def add_item(bundle_id, product_id) do
+    # 1. Preguntamos: ¿Ya existe este producto en este pack?
+    case Repo.get_by(BundleItem, bundle_id: bundle_id, product_id: product_id) do
+      nil ->
+        # NO existe -> Creamos uno nuevo con cantidad 1
+        %BundleItem{}
+        |> BundleItem.changeset(%{bundle_id: bundle_id, product_id: product_id, quantity: 1})
+        |> Repo.insert()
+
+      existing_item ->
+        # SÍ existe -> Le sumamos 1 a la cantidad actual
+        existing_item
+        |> Ecto.Changeset.change(quantity: existing_item.quantity + 1)
+        |> Repo.update()
+    end
+  end
+
+  def dec_item_quantity(item_id) do
+    item = Repo.get!(BundleItem, item_id)
+
+    if item.quantity > 1 do
+      # Si hay más de 1, restamos
+      item
+      |> Ecto.Changeset.change(quantity: item.quantity - 1)
+      |> Repo.update()
+    else
+      # Si hay 1 y restamos, ¿lo borramos?
+      # Por seguridad, mejor no hacemos nada y dejamos que use el botón "Quitar".
+      {:ok, item}
+    end
+  end
+
+  def remove_item(item_id) do
+    BundleItem
+    |> Repo.get!(item_id)
+    |> Repo.delete()
   end
 end

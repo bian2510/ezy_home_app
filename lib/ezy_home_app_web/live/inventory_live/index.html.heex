@@ -118,7 +118,11 @@
                 <tr class={if no_stock?, do: "bg-gray-50 opacity-75", else: ""}>
                   <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-mono text-gray-500"><%= bundle.sku %></td>
                   <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    <div class="font-medium text-gray-900"><%= bundle.name %></div>
+                    <div class="font-medium text-gray-900">
+                      <.link navigate={~p"/inventory/bundles/#{bundle}"} class="text-indigo-600 hover:text-indigo-900">
+                        <%= bundle.name %>
+                      </.link>
+                    </div>
                     <div class="text-xs mt-1">
                       <%= for item <- bundle.bundle_items do %>
                         <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 mr-1">

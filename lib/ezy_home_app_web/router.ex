@@ -22,6 +22,8 @@ defmodule EzyHomeAppWeb.Router do
     live "/inventory", InventoryLive.Index, :index
     live "/inventory/new", InventoryLive.Index, :new
     live "/inventory/:id/edit", InventoryLive.Index, :edit
+
+    live "/inventory/bundles/:id", InventoryLive.ShowBundle, :show
   end
 
   # Other scopes may use custom stacks.

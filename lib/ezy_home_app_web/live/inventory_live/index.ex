@@ -34,14 +34,7 @@ defmodule EzyHomeAppWeb.InventoryLive.Index do
     |> assign(:product, nil)
   end
 
-  # 2. Evento del botón "Nuevo Producto"
-  @impl true
-  def handle_event("new_product", _, socket) do
-    # Cambiamos la URL a /inventory/new sin recargar la página
-    {:noreply, push_patch(socket, to: ~p"/inventory/new")}
-  end
-
-  # 3. Mensaje que recibimos cuando el Formulario guarda exitosamente
+  # 2. Mensaje que recibimos cuando el Formulario guarda exitosamente
   @impl true
   def handle_info({:saved, message}, socket) do
     {:noreply,
@@ -49,6 +42,13 @@ defmodule EzyHomeAppWeb.InventoryLive.Index do
      |> put_flash(:info, message)
      |> push_patch(to: ~p"/inventory") # Cierra el modal volviendo a /inventory
      |> assign(products: Inventory.list_products())} # Refresca la lista
+  end
+
+  # 3. Evento del botón "Nuevo Producto"
+  @impl true
+  def handle_event("new_product", _, socket) do
+    # Cambiamos la URL a /inventory/new sin recargar la página
+    {:noreply, push_patch(socket, to: ~p"/inventory/new")}
   end
 
   @impl true
