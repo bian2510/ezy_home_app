@@ -7,7 +7,9 @@ defmodule EzyHomeApp.Inventory.Products do
   alias EzyHomeApp.Inventory.Schemas.Product
 
   def list do
-    Repo.all(Product)
+    Product
+    |> order_by([asc: :id])
+    |> Repo.all()
   end
 
   def get!(id), do: Repo.get!(Product, id)

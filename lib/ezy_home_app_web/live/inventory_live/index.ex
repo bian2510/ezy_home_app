@@ -44,4 +44,32 @@ defmodule EzyHomeAppWeb.InventoryLive.Index do
      |> push_patch(to: ~p"/inventory") # Cierra el modal volviendo a /inventory
      |> assign(products: Inventory.list_products())} # Refresca la lista
   end
+
+  @impl true
+  def handle_event("inc_stock", %{"id" => id}, socket) do
+    product = Inventory.get_product!(id)
+
+    # Aumentamos en 1
+    {:ok, _updated_product} = Inventory.update_product(product, %{current_stock: product.current_stock + 1})
+
+    # IMPORTANTE: Recargamos productos Y packs para ver el impacto en tiempo real
+    {:noreply,
+     socket
+     |> assign(products: Inventory.list_products())
+     |> assign(bundles: Inventory.list_bundles_with_stock())}
+  end
+
+  @impl true
+  def handle_event("dec_stock", %{"id" => id}, socket) do
+    product = Inventory.get_product!(id)
+
+    if product.current_stock > 0 do
+      {:ok, _updated_product} = Inventory.update_product(product, %{current_stock: product.current_stock - 1})
+    end
+
+    {:noreply,
+     socket
+     |> assign(products: Inventory.list_products())
+     |> assign(bundles: Inventory.list_bundles_with_stock())}
+  end
 end
