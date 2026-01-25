@@ -97,7 +97,7 @@ defmodule EzyHomeApp.Accounts.User do
       changeset
       # Hashing could be done with `Ecto.Changeset.prepare_changes/2`, but that
       # would keep the database transaction open longer and hurt performance.
-      |> put_change(:hashed_password, Bcrypt.hash_pwd_salt(password))
+      |> put_change(:hashed_password, Pbkdf2.hash_pwd_salt(password))
       |> delete_change(:password)
     else
       changeset
@@ -116,15 +116,15 @@ defmodule EzyHomeApp.Accounts.User do
   Verifies the password.
 
   If there is no user or the user doesn't have a password, we call
-  `Bcrypt.no_user_verify/0` to avoid timing attacks.
+  `Pbkdf2.no_user_verify/0` to avoid timing attacks.
   """
   def valid_password?(%EzyHomeApp.Accounts.User{hashed_password: hashed_password}, password)
       when is_binary(hashed_password) and byte_size(password) > 0 do
-    Bcrypt.verify_pass(password, hashed_password)
+    Pbkdf2.verify_pass(password, hashed_password)
   end
 
   def valid_password?(_, _) do
-    Bcrypt.no_user_verify()
+    Pbkdf2.no_user_verify()
     false
   end
 end

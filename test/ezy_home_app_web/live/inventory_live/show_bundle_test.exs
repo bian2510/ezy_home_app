@@ -2,14 +2,17 @@ defmodule EzyHomeAppWeb.InventoryLive.ShowBundleTest do
   use EzyHomeAppWeb.ConnCase
 
   import Phoenix.LiveViewTest
+  import EzyHomeApp.AccountsFixtures
   alias EzyHomeApp.Inventory
 
-  setup do
+  setup %{conn: conn} do
     # Preparamos datos: 1 Producto y 1 Pack
+    user = user_fixture()
+    conn = log_in_user(conn, user) # <--- Logueamos al usuario
     {:ok, product} = Inventory.create_product(%{name: "HDMI Cable", sku: "HDMI-1", price: 10, current_stock: 50})
     {:ok, bundle} = Inventory.create_bundle(%{name: "Pack TV", sku: "PK-TV", price: 100})
 
-    %{product: product, bundle: bundle}
+    %{conn: conn, bundle: bundle, product: product}
   end
 
   test "el usuario puede buscar y agregar productos", %{conn: conn, bundle: bundle, product: product} do

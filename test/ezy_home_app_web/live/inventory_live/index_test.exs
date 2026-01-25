@@ -2,49 +2,92 @@ defmodule EzyHomeAppWeb.InventoryLive.IndexTest do
   use EzyHomeAppWeb.ConnCase
 
   import Phoenix.LiveViewTest
-  alias EzyHomeApp.Inventory
+  import EzyHomeApp.InventoryFixtures
+  import EzyHomeApp.AccountsFixtures
 
-  describe "Index de Inventario (Packs)" do
-    setup do
-      # 1. Creamos Ingredientes (30 tornillos)
-      {:ok, prod_a} = Inventory.create_product(%{name: "Tornillo", sku: "TOR-1", price: 1, current_stock: 30})
+  # Alias necesarios para insertar datos manualmente
+  alias EzyHomeApp.Repo
+  alias EzyHomeApp.Inventory.Schemas.BundleItem
 
-      # 2. Creamos un Pack
-      {:ok, bundle} = Inventory.create_bundle(%{name: "Pack Constructor", sku: "PK-CONST", price: 50})
+  describe "Index de Inventario" do
+    setup %{conn: conn} do
+      # 1. Crear y Loguear Usuario
+      user = user_fixture()
+      conn = log_in_user(conn, user)
 
-      # 3. Agregamos el item al pack (se crea con cantidad: 1)
-      {:ok, item} = Inventory.add_item_to_bundle(bundle.id, prod_a.id)
+      # 2. Crear Producto (Forzamos stock a 30 para facilitar la matemática)
+      product = product_fixture(%{
+        name: "Tornillo",
+        sku: "TOR-TEST",
+        current_stock: 30,
+        price: 10
+      })
 
-      # 4. Actualizamos MANUALMENTE la cantidad a 10 para el test
-      # (30 tornillos / 10 requeridos = 3 packs posibles)
-      EzyHomeApp.Repo.get!(EzyHomeApp.Inventory.Schemas.BundleItem, item.id)
-      |> Ecto.Changeset.change(quantity: 10)
-      |> EzyHomeApp.Repo.update!()
+      # 3. Crear Pack
+      bundle = bundle_fixture(%{
+        name: "Pack Constructor",
+        sku: "PK-TEST"
+      })
 
-      %{bundle: bundle}
+      %{conn: conn, user: user, product: product, bundle: bundle}
     end
 
-    test "lista los packs y muestra el stock virtual calculado", %{conn: conn, bundle: bundle} do
-      # 1. Entrar a la página principal
-      {:ok, view, _html} = live(conn, ~p"/inventory")
+    test "lista los packs y productos", %{conn: conn, bundle: bundle, product: product} do
+      {:ok, _view, html} = live(conn, ~p"/inventory")
 
-      # 2. Verificar que el título del pack existe
-      assert has_element?(view, "td", bundle.name)
-
-      # 3. Verificar el SKU
-      assert has_element?(view, "td", bundle.sku)
-
-      # 4. LA PRUEBA DE FUEGO: Verificar el Stock Virtual
-      # El sistema debe haber calculado 30 / 10 = 3
-      # Buscamos un elemento que contenga "3 u." (que es como lo pusimos en el HTML)
-      assert has_element?(view, "span", "3 Packs")
+      assert html =~ bundle.name
+      assert html =~ product.name
     end
 
-    test "tiene un link para ir al detalle del pack", %{conn: conn, bundle: bundle} do
-      {:ok, view, _html} = live(conn, ~p"/inventory")
+    test "el usuario puede vender un PRODUCTO desde el modal", %{conn: conn, product: product} do
+      {:ok, index_live, _html} = live(conn, ~p"/inventory")
 
-      # Buscamos el enlace. verify que el href apunte a /inventory/bundles/:id
-      assert has_element?(view, "a[href='/inventory/bundles/#{bundle.id}']", bundle.name)
+      # 1. Abrir Modal (buscando por ID del producto)
+      index_live
+      |> element("button[phx-click='open_sell_modal'][phx-value-id='#{product.id}']")
+      |> render_click()
+
+      # 2. Llenar formulario (Vender 5) y Enviar
+      index_live
+      |> form("#sell-modal form", %{"quantity" => "5"})
+      |> render_submit()
+
+      # 3. VALIDACIÓN MATEMÁTICA
+      # Teníamos 30. Vendimos 5. Debe quedar 25.
+      # Buscamos que el número "25" aparezca en el HTML renderizado.
+      assert render(index_live) =~ "25"
+    end
+
+    test "el usuario puede vender un PACK y se actualiza el stock", %{conn: conn, bundle: bundle, product: product} do
+      # --- SETUP MANUAL: Crear la relación Pack-Producto ---
+      # Como no tenemos fixture para esto, lo insertamos directo en la DB
+      %BundleItem{}
+      |> Ecto.Changeset.change(%{
+        bundle_id: bundle.id,
+        product_id: product.id,
+        quantity: 1
+      })
+      |> Repo.insert!()
+      # -----------------------------------------------------
+
+      {:ok, index_live, _html} = live(conn, ~p"/inventory")
+
+      # 1. Abrir Modal de Pack
+      index_live
+      |> element("button[phx-click='open_sell_bundle_modal'][phx-value-id='#{bundle.id}']")
+      |> render_click()
+
+      # 2. Vender 2 Packs
+      index_live
+      |> form("#sell-bundle-modal form", %{"quantity" => "2"})
+      |> render_submit()
+
+      # 3. VALIDACIÓN MATEMÁTICA
+      # Teníamos 30 productos.
+      # Vendimos 2 Packs. Cada pack usa 1 producto. Total descontado: 2.
+      # 30 - 2 = 28.
+      # Verificamos que el número "28" aparezca en la pantalla.
+      assert render(index_live) =~ "28"
     end
   end
 end

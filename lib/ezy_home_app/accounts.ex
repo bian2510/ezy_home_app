@@ -41,7 +41,13 @@ defmodule EzyHomeApp.Accounts do
   def get_user_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
     user = Repo.get_by(User, email: email)
-    if User.valid_password?(user, password), do: user
+
+    if user && User.valid_password?(user, password) do
+      user
+    else
+      Pbkdf2.no_user_verify()
+      nil
+    end
   end
 
   @doc """
