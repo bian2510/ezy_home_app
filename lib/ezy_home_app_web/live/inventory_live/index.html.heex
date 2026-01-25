@@ -148,9 +148,8 @@
                   </td>
                   <td class="whitespace-nowrap px-3 py-4 text-sm text-right">
                     <button 
-                      phx-click="sell_pack" 
+                      phx-click="open_sell_bundle_modal"
                       phx-value-id={bundle.id}
-                      data-confirm="¿Confirmar venta de 1 unidad? Se descontarán los ingredientes."
                       class="rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm hover:bg-green-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
                       disabled={bundle.virtual_stock <= 0}
                     >
@@ -225,6 +224,55 @@
         >
           Cancelar
         </button>
+        
+        <button 
+          type="submit" 
+          class="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+        >
+          Confirmar Venta
+        </button>
+      </div>
+    </form>
+  </div>
+</.modal>
+
+<.modal
+  :if={@bundle_to_sell}
+  id="sell-bundle-modal"
+  show
+  on_cancel={~p"/inventory"} 
+>
+  <div class="p-6">
+    <h2 class="text-xl font-bold text-gray-900 mb-2">
+      Vender Pack: <%= @bundle_to_sell.name %>
+    </h2>
+    <p class="text-sm text-gray-500 mb-6">
+      Esto descontará los ingredientes del inventario físico.
+      <br>
+      Disponibles para armar: <span class="font-bold text-indigo-600"><%= @bundle_to_sell.virtual_stock %></span> packs.
+    </p>
+
+    <form phx-submit="confirm_bundle_sale" class="space-y-4">
+      <div>
+        <label for="bundle-qty" class="block text-sm font-medium text-gray-700">Cantidad a vender</label>
+        <div class="mt-1 relative rounded-md shadow-sm">
+          <input 
+            type="number" 
+            name="quantity" 
+            id="bundle-qty" 
+            min="1" 
+            max={@bundle_to_sell.virtual_stock} 
+            value="1" 
+            class="block w-full text-gray-600 rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+            autofocus
+          />
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-end gap-3">
+        <.link patch={~p"/inventory"} class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+          Cancelar
+        </.link>
         
         <button 
           type="submit" 

@@ -11,7 +11,8 @@ defmodule EzyHomeAppWeb.InventoryLive.Index do
      socket
      |> assign(products: Inventory.list_products())
      |> assign(bundles: Inventory.list_bundles_with_stock())
-     |> assign(:product_to_sell, nil)}
+     |> assign(:product_to_sell, nil)
+     |> assign(:bundle_to_sell, nil)}
   end
 
   # 1. Parámetros en la URL (Manejo de estados del Modal)
@@ -37,6 +38,7 @@ defmodule EzyHomeAppWeb.InventoryLive.Index do
     |> assign(:page_title, "Inventario")
     |> assign(:product, nil)
     |> assign(:product_to_sell, nil)
+    |> assign(:bundle_to_sell, nil)
   end
 
   # 2. Mensaje que recibimos cuando el Formulario guarda exitosamente
@@ -159,5 +161,34 @@ defmodule EzyHomeAppWeb.InventoryLive.Index do
   # Para cerrar el modal sin hacer nada
   def handle_event("cancel_sale", _, socket) do
     {:noreply, assign(socket, :selling_product, nil)}
+  end
+
+  @impl true
+  def handle_event("open_sell_bundle_modal", %{"id" => id}, socket) do
+    # Buscamos el pack en la lista que ya tenemos cargada (es más eficiente)
+    bundle = Enum.find(socket.assigns.bundles, fn b -> b.id == String.to_integer(id) end)
+    {:noreply, assign(socket, :bundle_to_sell, bundle)}
+  end
+
+  # 2. Confirmar Venta de Pack
+  @impl true
+  def handle_event("confirm_bundle_sale", %{"quantity" => quantity}, socket) do
+    bundle = socket.assigns.bundle_to_sell
+    qty = String.to_integer(quantity)
+
+    # Llamamos a tu función de vender pack (Inventory.sell_bundle)
+    # Nota: Asumo que sell_bundle acepta (id, user_id, quantity).
+    case Inventory.sell_bundle(bundle.id, qty) do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Venta de Pack registrada (#{qty} u). Stock descontado.")
+         |> assign(:bundle_to_sell, nil) # Cerramos modal
+         |> assign(products: Inventory.list_products()) # Refrescamos productos
+         |> assign(bundles: Inventory.list_bundles_with_stock())} # Refrescamos packs
+
+      {:error, msg} ->
+        {:noreply, put_flash(socket, :error, "Error: #{msg}")}
+    end
   end
 end
