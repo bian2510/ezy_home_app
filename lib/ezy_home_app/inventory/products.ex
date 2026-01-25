@@ -38,4 +38,22 @@ defmodule EzyHomeApp.Inventory.Products do
     |> limit(5)
     |> Repo.all()
   end
+
+  def sell_product(id, quantity \\ 1) do
+    # 1. Buscamos el producto (nos aseguramos de tener el struct completo)
+    product = Repo.get!(Product, id)
+
+    if product.current_stock >= quantity do
+      # 2. Calculamos el nuevo stock
+      new_stock = product.current_stock - quantity
+
+      # 3. Preparamos el cambio y guardamos
+      # Usamos Ecto.Changeset.change para cambiar solo ese campo sin validar el resto
+      product
+      |> Ecto.Changeset.change(current_stock: new_stock)
+      |> Repo.update()
+    else
+      {:error, "Stock insuficiente (Tienes #{product.current_stock}, intentas vender #{quantity})."}
+    end
+  end
 end

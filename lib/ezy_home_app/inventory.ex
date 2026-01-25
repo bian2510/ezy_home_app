@@ -18,6 +18,7 @@ defmodule EzyHomeApp.Inventory do
   defdelegate create_product(attrs), to: Products, as: :create
   defdelegate update_product(product, attrs), to: Products, as: :update
   defdelegate delete_product(product), to: Products, as: :delete
+  defdelegate sell_product(id, quantity \\ 1), to: Products, as: :sell_product
 
   defdelegate search_products(query), to: Products, as: :search
 
@@ -29,6 +30,7 @@ defmodule EzyHomeApp.Inventory do
   defdelegate add_item_to_bundle(bundle_id, product_id), to: Bundles, as: :add_item
   defdelegate dec_item_quantity(item_id), to: Bundles, as: :dec_item_quantity
   defdelegate remove_item_from_bundle(item_id), to: Bundles, as: :remove_item
+
 
   # --- FUNCIONES ESPECIALES (Stock Virtual) ---
   defdelegate calculate_bundle_stock(bundle), to: Bundles, as: :calculate_stock

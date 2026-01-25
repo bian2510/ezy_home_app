@@ -7,7 +7,11 @@ defmodule EzyHomeAppWeb.InventoryLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, products: Inventory.list_products(), bundles: Inventory.list_bundles_with_stock())}
+    {:ok,
+     socket
+     |> assign(products: Inventory.list_products())
+     |> assign(bundles: Inventory.list_bundles_with_stock())
+     |> assign(:product_to_sell, nil)}
   end
 
   # 1. Parámetros en la URL (Manejo de estados del Modal)
@@ -32,6 +36,7 @@ defmodule EzyHomeAppWeb.InventoryLive.Index do
     socket
     |> assign(:page_title, "Inventario")
     |> assign(:product, nil)
+    |> assign(:product_to_sell, nil)
   end
 
   # 2. Mensaje que recibimos cuando el Formulario guarda exitosamente
@@ -110,5 +115,49 @@ defmodule EzyHomeAppWeb.InventoryLive.Index do
       {:error, reason} ->
         {:noreply, put_flash(socket, :error, "Error: #{reason}")}
     end
+  end
+
+  @impl true
+  def handle_event("open_sell_modal", %{"id" => id}, socket) do
+    product = Inventory.get_product!(id)
+    {:noreply, assign(socket, :product_to_sell, product)}
+  end
+
+  # CERRAR MODAL: Cuando cancelas
+  @impl true
+  def handle_event("close_sell_modal", _, socket) do
+    {:noreply, assign(socket, :product_to_sell, nil)}
+  end
+
+  def handle_event("prepare_sale", %{"id" => id}, socket) do
+    product = Inventory.get_product!(id)
+    # Guardamos el producto en el socket y activamos el modal
+    {:noreply, assign(socket, :selling_product, product)}
+  end
+
+  # 2. Cuando el modal envía el formulario con la cantidad
+  @impl true
+  def handle_event("confirm_sale", %{"quantity" => quantity}, socket) do
+    product = socket.assigns.product_to_sell
+    qty = String.to_integer(quantity)
+
+    case Inventory.sell_product(product.id, qty) do
+      {:ok, _} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Venta registrada: #{qty} x #{product.name}")
+         |> assign(:product_to_sell, nil) # Cerramos el modal
+         |> assign(products: Inventory.list_products()) # Refrescamos listas
+         |> assign(bundles: Inventory.list_bundles_with_stock())}
+
+      {:error, msg} ->
+        # Si hay error, mantenemos el modal abierto pero mostramos el error
+        {:noreply, put_flash(socket, :error, msg)}
+    end
+  end
+
+  # Para cerrar el modal sin hacer nada
+  def handle_event("cancel_sale", _, socket) do
+    {:noreply, assign(socket, :selling_product, nil)}
   end
 end

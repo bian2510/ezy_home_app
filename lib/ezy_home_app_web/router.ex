@@ -21,12 +21,6 @@ defmodule EzyHomeAppWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-
-    live "/inventory", InventoryLive.Index, :index
-    live "/inventory/new", InventoryLive.Index, :new
-    live "/inventory/:id/edit", InventoryLive.Index, :edit
-
-    live "/inventory/bundles/:id", InventoryLive.ShowBundle, :show
   end
 
   # Other scopes may use custom stacks.
@@ -60,6 +54,12 @@ defmodule EzyHomeAppWeb.Router do
       on_mount: [{EzyHomeAppWeb.UserAuth, :require_authenticated}] do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
+
+      live "/inventory", InventoryLive.Index, :index
+      live "/inventory/new", InventoryLive.Index, :new
+      live "/inventory/:id/edit", InventoryLive.Index, :edit
+
+      live "/inventory/bundles/:id", InventoryLive.ShowBundle, :show
     end
 
     post "/users/update-password", UserSessionController, :update_password

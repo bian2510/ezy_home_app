@@ -75,7 +75,6 @@ defmodule EzyHomeAppWeb.InventoryLive.FormComponent do
   end
 
   @impl true
-  @impl true
   def handle_event("save", %{"product" => product_params}, socket) do
     save_product(socket, socket.assigns.action, product_params)
   end
