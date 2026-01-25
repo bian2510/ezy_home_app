@@ -55,4 +55,11 @@ defmodule EzyHomeApp.Sales do
     })
     |> Repo.insert!()
   end
+
+  def list_sales do
+    Sale
+    |> preload([:user, :product, bundle: [bundle_items: :product]])
+    |> order_by([s], desc: s.inserted_at)
+    |> Repo.all()
+  end
 end

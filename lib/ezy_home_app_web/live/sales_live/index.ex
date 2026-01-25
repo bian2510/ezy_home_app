@@ -36,11 +36,34 @@ defmodule EzyHomeAppWeb.SalesLive.Index do
               <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
                 <%= if sale.user, do: sale.user.email, else: "Sistema" %>
               </td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+              <td class="px-3 py-4 text-sm text-gray-500">
                 <%= cond do %>
-                  <% sale.product -> %> 📦 <%= sale.product.name %>
-                  <% sale.bundle -> %> 🎁 <%= sale.bundle.name %>
-                  <% true -> %> - Desconocido -
+                  <% sale.product -> %>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xl">📦</span>
+                      <span class="font-medium text-gray-900"><%= sale.product.name %></span>
+                    </div>
+                    <div class="text-xs text-gray-400 pl-7"><%= sale.product.sku %></div>
+
+                  <% sale.bundle -> %>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xl">🎁</span>
+                      <span class="font-medium text-indigo-700"><%= sale.bundle.name %></span>
+                    </div>
+
+                    <div class="mt-2 pl-2 border-l-2 border-indigo-100 ml-2">
+                      <ul class="text-xs text-gray-500 space-y-1">
+                        <%= for item <- sale.bundle.bundle_items do %>
+                          <li>
+                            <span class="font-bold text-gray-700"><%= item.quantity %>x</span>
+                            <%= item.product.name %>
+                          </li>
+                        <% end %>
+                      </ul>
+                    </div>
+
+                  <% true -> %>
+                    <span class="text-red-500 italic">Item desconocido</span>
                 <% end %>
               </td>
               <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900 font-bold">
