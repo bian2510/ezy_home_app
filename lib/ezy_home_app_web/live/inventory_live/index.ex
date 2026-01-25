@@ -1,14 +1,18 @@
 defmodule EzyHomeAppWeb.InventoryLive.Index do
   use EzyHomeAppWeb, :live_view
   alias EzyHomeApp.Inventory
+  alias EzyHomeApp.Sales
   alias EzyHomeApp.Inventory.Schemas.Product # Necesitamos el struct vacío
 
   import EzyHomeAppWeb.CoreComponents
 
   @impl true
   def mount(_params, _session, socket) do
+    user = socket.assigns.current_scope.user
+
     {:ok,
      socket
+     |> assign(:current_user, user)
      |> assign(products: Inventory.list_products())
      |> assign(bundles: Inventory.list_bundles_with_stock())
      |> assign(:product_to_sell, nil)
@@ -142,19 +146,21 @@ defmodule EzyHomeAppWeb.InventoryLive.Index do
   def handle_event("confirm_sale", %{"quantity" => quantity}, socket) do
     product = socket.assigns.product_to_sell
     qty = String.to_integer(quantity)
+    # Obtenemos el usuario logueado (Phoenix Auth lo pone en socket.assigns)
+    user = socket.assigns.current_user
 
-    case Inventory.sell_product(product.id, qty) do
-      {:ok, _} ->
+    # Llamamos a nuestro nuevo contexto de Ventas
+    case Sales.record_sale(user, :product, product.id, qty) do
+      {:ok, _sale} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Venta registrada: #{qty} x #{product.name}")
-         |> assign(:product_to_sell, nil) # Cerramos el modal
-         |> assign(products: Inventory.list_products()) # Refrescamos listas
-         |> assign(bundles: Inventory.list_bundles_with_stock())}
+         |> put_flash(:info, "✅ Venta registrada correctamente ($).")
+         |> assign(:product_to_sell, nil) # Cerramos modal
+         |> assign(products: Inventory.list_products())} # Refrescamos la tabla
 
       {:error, msg} ->
-        # Si hay error, mantenemos el modal abierto pero mostramos el error
-        {:noreply, put_flash(socket, :error, msg)}
+        # Si falla (ej: sin stock), mostramos error rojo
+        {:noreply, put_flash(socket, :error, "❌ Error: #{inspect(msg)}")}
     end
   end
 
@@ -175,20 +181,20 @@ defmodule EzyHomeAppWeb.InventoryLive.Index do
   def handle_event("confirm_bundle_sale", %{"quantity" => quantity}, socket) do
     bundle = socket.assigns.bundle_to_sell
     qty = String.to_integer(quantity)
+    user = socket.assigns.current_user
 
-    # Llamamos a tu función de vender pack (Inventory.sell_bundle)
-    # Nota: Asumo que sell_bundle acepta (id, user_id, quantity).
-    case Inventory.sell_bundle(bundle.id, qty) do
-      {:ok, _} ->
+    # Llamamos a Ventas especificando que es un :bundle
+    case Sales.record_sale(user, :bundle, bundle.id, qty) do
+      {:ok, _sale} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Venta de Pack registrada (#{qty} u). Stock descontado.")
+         |> put_flash(:info, "✅ Pack vendido correctamente ($).")
          |> assign(:bundle_to_sell, nil) # Cerramos modal
-         |> assign(products: Inventory.list_products()) # Refrescamos productos
-         |> assign(bundles: Inventory.list_bundles_with_stock())} # Refrescamos packs
+         |> assign(products: Inventory.list_products())       # Actualiza stock físico
+         |> assign(bundles: Inventory.list_bundles_with_stock())} # Recalcula stock virtual
 
       {:error, msg} ->
-        {:noreply, put_flash(socket, :error, "Error: #{msg}")}
+        {:noreply, put_flash(socket, :error, "❌ Error: #{inspect(msg)}")}
     end
   end
 end

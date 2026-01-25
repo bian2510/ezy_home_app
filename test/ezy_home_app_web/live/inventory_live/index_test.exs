@@ -8,6 +8,7 @@ defmodule EzyHomeAppWeb.InventoryLive.IndexTest do
   # Alias necesarios para insertar datos manualmente
   alias EzyHomeApp.Repo
   alias EzyHomeApp.Inventory.Schemas.BundleItem
+  alias EzyHomeApp.Sales.Sale
 
   describe "Index de Inventario" do
     setup %{conn: conn} do
@@ -42,20 +43,25 @@ defmodule EzyHomeAppWeb.InventoryLive.IndexTest do
     test "el usuario puede vender un PRODUCTO desde el modal", %{conn: conn, product: product} do
       {:ok, index_live, _html} = live(conn, ~p"/inventory")
 
-      # 1. Abrir Modal (buscando por ID del producto)
+      # 1. Abrir Modal
       index_live
       |> element("button[phx-click='open_sell_modal'][phx-value-id='#{product.id}']")
       |> render_click()
 
-      # 2. Llenar formulario (Vender 5) y Enviar
+      # 2. Vender 5 unidades
       index_live
       |> form("#sell-modal form", %{"quantity" => "5"})
       |> render_submit()
 
-      # 3. VALIDACIÓN MATEMÁTICA
-      # Teníamos 30. Vendimos 5. Debe quedar 25.
-      # Buscamos que el número "25" aparezca en el HTML renderizado.
+      # 3. VERIFICACIONES
+      # A) Stock en pantalla actualizado (Ya lo tenías)
       assert render(index_live) =~ "25"
+
+      # B) ¡NUEVO! Verificar que se creó el recibo en la BD
+      assert Repo.aggregate(Sale, :count) == 1
+      sale = Repo.one(Sale)
+      assert sale.quantity == 5
+      assert sale.total_price == Decimal.mult(product.price, 5)
     end
 
     test "el usuario puede vender un PACK y se actualiza el stock", %{conn: conn, bundle: bundle, product: product} do

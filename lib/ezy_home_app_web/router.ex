@@ -60,6 +60,8 @@ defmodule EzyHomeAppWeb.Router do
       live "/inventory/:id/edit", InventoryLive.Index, :edit
 
       live "/inventory/bundles/:id", InventoryLive.ShowBundle, :show
+
+      live "/sales", SalesLive.Index, :index
     end
 
     post "/users/update-password", UserSessionController, :update_password
