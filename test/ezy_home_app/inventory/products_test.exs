@@ -4,6 +4,7 @@ defmodule EzyHomeApp.Inventory.ProductsTest do
   alias EzyHomeApp.Inventory
   alias EzyHomeApp.Repo
   alias EzyHomeApp.Inventory.Schemas.Product
+  import EzyHomeApp.InventoryFixtures
 
   describe "Packs y Stock Virtual" do
     # Configuramos los datos antes de cada test
@@ -63,6 +64,29 @@ defmodule EzyHomeApp.Inventory.ProductsTest do
       # Verificación: El stock no debió cambiar (Rollback de transacción)
       prod_a_updated = Repo.get!(Product, prod_a.id)
       assert prod_a_updated.current_stock == 10
+    end
+  end
+
+  describe "alertas de stock" do
+    test "list_low_stock_products/0 solo devuelve productos en peligro" do
+      # 1. Crear producto SANO (Stock 20, Mínimo 10) -> No debería salir
+      healthy_product = product_fixture(%{current_stock: 20, min_stock_threshold: 10})
+
+      # 2. Crear producto EN PELIGRO (Stock 5, Mínimo 10) -> Debería salir
+      low_stock_product = product_fixture(%{current_stock: 5, min_stock_threshold: 10})
+
+      # 3. Crear producto EN EL LÍMITE (Stock 10, Mínimo 10) -> Debería salir (según nuestra lógica <=)
+      borderline_product = product_fixture(%{current_stock: 10, min_stock_threshold: 10})
+
+      # Ejecutar la función
+      results = Inventory.list_low_stock_products()
+      ids = Enum.map(results, & &1.id)
+
+      # Verificaciones
+      assert length(results) == 2
+      assert low_stock_product.id in ids
+      assert borderline_product.id in ids
+      refute healthy_product.id in ids
     end
   end
 end

@@ -61,7 +61,7 @@ defmodule EzyHomeAppWeb.InventoryLive.IndexTest do
       assert Repo.aggregate(Sale, :count) == 1
       sale = Repo.one(Sale)
       assert sale.quantity == 5
-      assert sale.total_price == Decimal.mult(product.price, 5)
+      assert Decimal.eq?(sale.total_price, Decimal.mult(product.price, 5))
     end
 
     test "el usuario puede vender un PACK y se actualiza el stock", %{conn: conn, bundle: bundle, product: product} do
