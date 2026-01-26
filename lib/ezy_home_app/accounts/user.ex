@@ -9,6 +9,8 @@ defmodule EzyHomeApp.Accounts.User do
     field :confirmed_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
 
+    belongs_to :company, EzyHomeApp.Accounts.Company
+
     timestamps(type: :utc_datetime)
   end
 
@@ -126,5 +128,13 @@ defmodule EzyHomeApp.Accounts.User do
   def valid_password?(_, _) do
     Pbkdf2.no_user_verify()
     false
+  end
+
+  def registration_changeset(user, attrs, opts \\ []) do
+    user
+    |> cast(attrs, [:email, :password, :company_id])
+    |> validate_email(opts)
+    |> validate_password(opts)
+    |> validate_required([:company_id])
   end
 end

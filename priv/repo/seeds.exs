@@ -21,6 +21,21 @@ EzyHomeApp.Repo.delete_all(EzyHomeApp.Inventory.Schemas.BundleItem)
 # 3. Ahora sí podemos borrar Packs y Productos sin errores
 EzyHomeApp.Repo.delete_all(EzyHomeApp.Inventory.Schemas.Bundle)
 EzyHomeApp.Repo.delete_all(EzyHomeApp.Inventory.Schemas.Product)
+EzyHomeApp.Repo.delete_all(EzyHomeApp.Accounts.User)
+EzyHomeApp.Repo.delete_all(EzyHomeApp.Accounts.Company)
+
+company = EzyHomeApp.Repo.insert!(%EzyHomeApp.Accounts.Company{
+  name: "Mi Tienda Domótica",
+  tax_id: "20-12345678-9"
+})
+
+# 3. Crear Usuario vinculado a la empresa
+EzyHomeApp.Repo.insert!(%EzyHomeApp.Accounts.User{
+  email: "fabian@covr.care",
+  hashed_password: Pbkdf2.hash_pwd_salt("password123"),
+  confirmed_at: DateTime.utc_now() |> DateTime.truncate(:second),
+  company_id: company.id
+})
 
 # 2. Creamos Productos Físicos
 {:ok, hub} = Inventory.create_product(%{
@@ -28,7 +43,8 @@ EzyHomeApp.Repo.delete_all(EzyHomeApp.Inventory.Schemas.Product)
   sku: "HUB-ZIG-01",
   current_stock: 50,
   min_stock_threshold: 5,
-  price: "45.00"
+  price: "45.00",
+  company_id: company.id
 })
 
 {:ok, bombilla} = Inventory.create_product(%{
@@ -36,22 +52,25 @@ EzyHomeApp.Repo.delete_all(EzyHomeApp.Inventory.Schemas.Product)
   sku: "BULB-RGB-01",
   current_stock: 10,  # <-- ¡Poco stock!
   min_stock_threshold: 15, # Debería salir en ROJO
-  price: "12.00"
+  price: "12.00",
+  company_id: company.id
 })
 
-{:ok, sensor} = Inventory.create_product(%{
+{:ok, _sensor} = Inventory.create_product(%{
   name: "Sensor Puerta/Ventana",
   sku: "SENS-DOOR-01",
   current_stock: 100,
   min_stock_threshold: 10,
-  price: "8.50"
+  price: "8.50",
+  company_id: company.id
 })
 
 # 3. Creamos un Pack (Bundle)
 {:ok, pack} = Inventory.create_bundle(%{
   name: "Kit Iniciación Domótica",
   sku: "KIT-START-01",
-  description: "Todo para empezar"
+  description: "Todo para empezar",
+  company_id: company.id
 })
 
 # 4. Definimos la receta del Pack

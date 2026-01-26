@@ -10,14 +10,15 @@ defmodule EzyHomeApp.Sales.Sale do
     belongs_to :user, EzyHomeApp.Accounts.User
     belongs_to :product, EzyHomeApp.Inventory.Schemas.Product
     belongs_to :bundle, EzyHomeApp.Inventory.Schemas.Bundle
+    belongs_to :company, EzyHomeApp.Accounts.Company
 
     timestamps(type: :utc_datetime)
   end
 
   def changeset(sale, attrs) do
     sale
-    |> cast(attrs, [:quantity, :total_price, :user_id, :product_id, :bundle_id])
-    |> validate_required([:quantity, :total_price, :user_id])
+    |> cast(attrs, [:quantity, :total_price, :user_id, :product_id, :bundle_id, :company_id])
+    |> validate_required([:quantity, :total_price, :user_id, :company_id])
     |> validate_product_or_bundle()
   end
 

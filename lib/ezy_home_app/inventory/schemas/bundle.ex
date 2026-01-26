@@ -12,14 +12,15 @@ defmodule EzyHomeApp.Inventory.Schemas.Bundle do
 
     has_many :bundle_items, EzyHomeApp.Inventory.Schemas.BundleItem
     has_many :products, through: [:bundle_items, :product]
+    belongs_to :company, EzyHomeApp.Accounts.Company
 
     timestamps()
   end
 
   def changeset(bundle, attrs) do
     bundle
-    |> cast(attrs, [:name, :sku, :description, :mercadolibre_id, :active, :price])
-    |> validate_required([:name, :sku])
+    |> cast(attrs, [:name, :sku, :description, :mercadolibre_id, :active, :price, :company_id])
+    |> validate_required([:name, :sku, :company_id])
     |> unique_constraint(:sku)
   end
 end

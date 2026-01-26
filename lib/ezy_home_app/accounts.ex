@@ -5,8 +5,9 @@ defmodule EzyHomeApp.Accounts do
 
   import Ecto.Query, warn: false
   alias EzyHomeApp.Repo
+  alias Ecto.Multi
 
-  alias EzyHomeApp.Accounts.{User, UserToken, UserNotifier}
+  alias EzyHomeApp.Accounts.{Company, User, UserToken, UserNotifier}
 
   ## Database getters
 
@@ -82,8 +83,15 @@ defmodule EzyHomeApp.Accounts do
   """
   def register_user(attrs) do
     %User{}
-    |> User.email_changeset(attrs)
+    |> User.registration_changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc """
+  Returns an %Ecto.Changeset{} for tracking user changes during registration.
+  """
+  def change_user_registration(%User{} = user, attrs \\ %{}) do
+    User.registration_changeset(user, attrs)
   end
 
   ## Settings
@@ -228,16 +236,6 @@ defmodule EzyHomeApp.Accounts do
     {:ok, query} = UserToken.verify_magic_link_token_query(token)
 
     case Repo.one(query) do
-      # Prevent session fixation attacks by disallowing magic links for unconfirmed users with password
-      {%User{confirmed_at: nil, hashed_password: hash}, _token} when not is_nil(hash) ->
-        raise """
-        magic link log in is not allowed for unconfirmed users with a password set!
-
-        This cannot happen with the default implementation, which indicates that you
-        might have adapted the code to a different use case. Please make sure to read the
-        "Mixing magic link and password registration" section of `mix help phx.gen.auth`.
-        """
-
       {%User{confirmed_at: nil} = user, _token} ->
         user
         |> User.confirm_changeset()
@@ -280,6 +278,20 @@ defmodule EzyHomeApp.Accounts do
   end
 
   @doc """
+  Delivers the confirmation email instructions to the given user.
+  """
+  def deliver_user_confirmation_instructions(%User{} = user, confirmation_url_fun)
+      when is_function(confirmation_url_fun, 1) do
+    if user.confirmed_at do
+      {:error, :already_confirmed}
+    else
+      {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
+      Repo.insert!(user_token)
+      UserNotifier.deliver_confirmation_instructions(user, confirmation_url_fun.(encoded_token))
+    end
+  end
+
+  @doc """
   Deletes the signed token with the given context.
   """
   def delete_user_session_token(token) do
@@ -299,5 +311,17 @@ defmodule EzyHomeApp.Accounts do
         {:ok, {user, tokens_to_expire}}
       end
     end)
+  end
+
+  def register_company_and_owner(company_attrs, user_attrs) do
+    company_attrs = Map.put_new(company_attrs, "tax_id", "PENDING-#{System.unique_integer([:positive])}")
+    Multi.new()
+    # 1. Crear la Empresa
+    |> Multi.insert(:company, Company.changeset(%Company{}, company_attrs))
+    # 2. Crear el Usuario usando el ID de la empresa del paso 1
+    |> Multi.insert(:user, fn %{company: company} ->
+         User.registration_changeset(%User{}, Map.put(user_attrs, "company_id", company.id))
+       end)
+    |> Repo.transaction()
   end
 end

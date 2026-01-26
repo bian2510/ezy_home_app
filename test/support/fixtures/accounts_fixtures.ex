@@ -8,13 +8,36 @@ defmodule EzyHomeApp.AccountsFixtures do
 
   alias EzyHomeApp.Accounts
   alias EzyHomeApp.Accounts.Scope
+  alias EzyHomeApp.Repo
+  alias EzyHomeApp.Accounts.Company
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
+
+  def company_fixture(attrs \\ %{}) do
+    # 1. Preparamos los datos (mezclamos los que vienen con valores por defecto)
+    valid_attrs = Enum.into(attrs, %{
+      name: "Test Company #{System.unique_integer([:positive])}",
+      tax_id: "20-#{System.unique_integer([:positive])}-1"
+    })
+
+    # 2. Creamos la empresa
+    {:ok, company} =
+      %Company{}  # <--- ¡AQUÍ ESTÁ LA CLAVE! Empezamos con el struct vacío.
+      |> Company.changeset(valid_attrs)
+      |> Repo.insert()
+
+    company
+  end
+
   def valid_user_password, do: "hello world!"
 
   def valid_user_attributes(attrs \\ %{}) do
+    company = company_fixture()
+
     Enum.into(attrs, %{
-      email: unique_user_email()
+      email: unique_user_email(),
+      password: valid_user_password(),
+      company_id: company.id
     })
   end
 

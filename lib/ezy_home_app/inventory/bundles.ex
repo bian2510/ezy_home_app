@@ -136,4 +136,20 @@ defmodule EzyHomeApp.Inventory.Bundles do
       end)
     end)
   end
+
+  def update_price_from_ingredients(bundle_id) do
+    bundle = get!(bundle_id)
+
+    # 1. Calculamos la suma total
+    new_price =
+      Enum.reduce(bundle.bundle_items, Decimal.new("0.00"), fn item, acc ->
+        item_cost = Decimal.mult(item.product.price, Decimal.new(item.quantity))
+        Decimal.add(acc, item_cost)
+      end)
+
+    # 2. Actualizamos el campo price del Bundle
+    bundle
+    |> Ecto.Changeset.change(price: new_price)
+    |> Repo.update()
+  end
 end

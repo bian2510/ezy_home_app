@@ -11,14 +11,16 @@ defmodule EzyHomeApp.Inventory.Schemas.Product do
     field :mercadolibre_id, :string
     field :price, :decimal
 
+    belongs_to :company, EzyHomeApp.Accounts.Company
+
     timestamps()
   end
 
   @doc false
   def changeset(product, attrs) do
     product
-    |> cast(attrs, [:name, :sku, :description, :current_stock, :min_stock_threshold, :mercadolibre_id, :price])
-    |> validate_required([:name, :sku, :current_stock])
+    |> cast(attrs, [:name, :sku, :description, :current_stock, :min_stock_threshold, :mercadolibre_id, :price, :company_id])
+    |> validate_required([:name, :sku, :current_stock, :company_id])
     |> validate_number(:current_stock, greater_than_or_equal_to: 0)
     |> unique_constraint(:sku)
   end
