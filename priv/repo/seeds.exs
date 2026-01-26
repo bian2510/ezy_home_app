@@ -13,7 +13,12 @@
 alias EzyHomeApp.Inventory
 
 # 1. Limpiamos la casa (opcional, borra todo lo anterior)
+EzyHomeApp.Repo.delete_all(EzyHomeApp.Sales.Sale)
+
+# 2. Borramos los items de los packs
 EzyHomeApp.Repo.delete_all(EzyHomeApp.Inventory.Schemas.BundleItem)
+
+# 3. Ahora sí podemos borrar Packs y Productos sin errores
 EzyHomeApp.Repo.delete_all(EzyHomeApp.Inventory.Schemas.Bundle)
 EzyHomeApp.Repo.delete_all(EzyHomeApp.Inventory.Schemas.Product)
 

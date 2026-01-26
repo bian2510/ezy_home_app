@@ -19,6 +19,7 @@ defmodule EzyHomeApp.Inventory do
   defdelegate update_product(product, attrs), to: Products, as: :update
   defdelegate delete_product(product), to: Products, as: :delete
   defdelegate sell_product(id, quantity \\ 1), to: Products, as: :sell_product
+  defdelegate list_low_stock_products, to: Products, as: :list_low_stock_products
 
   defdelegate search_products(query), to: Products, as: :search
 

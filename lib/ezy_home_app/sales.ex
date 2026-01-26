@@ -62,4 +62,25 @@ defmodule EzyHomeApp.Sales do
     |> order_by([s], desc: s.inserted_at)
     |> Repo.all()
   end
+
+  def get_today_stats do
+    today = Date.utc_today()
+
+    query = from s in Sale,
+      where: fragment("?::date", s.inserted_at) == ^today,
+      select: {count(s.id), sum(s.total_price)}
+
+    case Repo.one(query) do
+      {count, total} -> %{count: count, total: total || Decimal.new(0)}
+      nil -> %{count: 0, total: Decimal.new(0)}
+    end
+  end
+
+  def list_recent_sales(limit \\ 5) do
+    Sale
+    |> preload([:user, :product, :bundle])
+    |> order_by(desc: :inserted_at)
+    |> limit(^limit)
+    |> Repo.all()
+  end
 end

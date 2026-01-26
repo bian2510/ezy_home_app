@@ -69,7 +69,7 @@ defmodule EzyHomeAppWeb.SalesLive.Index do
               <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900 font-bold">
                 <%= sale.quantity %>
               </td>
-              <td class="whitespace-nowrap px-3 py-4 text-sm text-right text-green-600 font-bold">
+              <td class="whitespace-nowrap px-3 py-4 text-sm text-right text-gray-600 font-bold">
                 $<%= sale.total_price %>
               </td>
             </tr>

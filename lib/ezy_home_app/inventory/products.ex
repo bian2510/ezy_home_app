@@ -56,4 +56,10 @@ defmodule EzyHomeApp.Inventory.Products do
       {:error, "Stock insuficiente (Tienes #{product.current_stock}, intentas vender #{quantity})."}
     end
   end
+
+  def list_low_stock_products do
+    Product
+    |> where([p], p.current_stock <= p.min_stock_threshold)
+    |> Repo.all()
+  end
 end
