@@ -91,12 +91,14 @@ defmodule EzyHomeAppWeb.InventoryLive.FormComponent do
   end
 
   defp save_product(socket, :new, product_params) do
-    case Inventory.create_product(product_params) do
+    company_id = socket.assigns.current_company_id
+    case Inventory.create_product(company_id, product_params) do
       {:ok, _product} ->
         send(self(), {:saved, "Producto creado exitosamente"})
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
+        IO.inspect(changeset.errors, label: "❌ ERROR AL GUARDAR PRODUCTO")
         {:noreply, assign_form(socket, changeset)}
     end
   end

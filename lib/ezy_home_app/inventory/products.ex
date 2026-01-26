@@ -6,16 +6,17 @@ defmodule EzyHomeApp.Inventory.Products do
   alias EzyHomeApp.Repo
   alias EzyHomeApp.Inventory.Schemas.Product
 
-  def list do
+  def list(company_id) do
     Product
+    |> where(company_id: ^company_id)
     |> order_by([asc: :id])
     |> Repo.all()
   end
 
-  def get!(id), do: Repo.get!(Product, id)
+  def get!(company_id, id), do: Repo.get!(Product, id: id, company_id: company_id)
 
-  def create(attrs \\ %{}) do
-    %Product{}
+  def create(company_id, attrs \\ %{}) do
+    %Product{company_id: company_id}
     |> Product.changeset(attrs)
     |> Repo.insert()
   end
@@ -30,18 +31,19 @@ defmodule EzyHomeApp.Inventory.Products do
     Repo.delete(product)
   end
 
-  def search(query) do
+  def search(company_id, query) do
     search_term = "%#{query}%"
 
     Product
+    |> where(company_id: ^company_id)
     |> where([p], ilike(p.name, ^search_term) or ilike(p.sku, ^search_term))
     |> limit(5)
     |> Repo.all()
   end
 
-  def sell_product(id, quantity \\ 1) do
+  def sell_product(company_id, id, quantity \\ 1) do
     # 1. Buscamos el producto (nos aseguramos de tener el struct completo)
-    product = Repo.get!(Product, id)
+    product = Repo.get!(Product, id: id, company_id: company_id)
 
     if product.current_stock >= quantity do
       # 2. Calculamos el nuevo stock
@@ -57,8 +59,9 @@ defmodule EzyHomeApp.Inventory.Products do
     end
   end
 
-  def list_low_stock_products do
+  def list_low_stock_products(company_id) do
     Product
+    |> where(company_id: ^company_id)
     |> where([p], p.current_stock <= p.min_stock_threshold)
     |> Repo.all()
   end

@@ -13,15 +13,15 @@ defmodule EzyHomeApp.Inventory do
   # =================================================================
 
   # --- PRODUCTOS ---
-  defdelegate list_products, to: Products, as: :list
-  defdelegate get_product!(id), to: Products, as: :get!
-  defdelegate create_product(attrs), to: Products, as: :create
+  defdelegate list_products(company_id), to: Products, as: :list
+  defdelegate get_product!(company_id, id), to: Products, as: :get!
+  defdelegate create_product(company_id, attrs), to: Products, as: :create
   defdelegate update_product(product, attrs), to: Products, as: :update
   defdelegate delete_product(product), to: Products, as: :delete
-  defdelegate sell_product(id, quantity \\ 1), to: Products, as: :sell_product
-  defdelegate list_low_stock_products, to: Products, as: :list_low_stock_products
+  defdelegate sell_product(company_id, id, quantity \\ 1), to: Products, as: :sell_product
+  defdelegate list_low_stock_products(company_id), to: Products, as: :list_low_stock_products
 
-  defdelegate search_products(query), to: Products, as: :search
+  defdelegate search_products(company_id, query), to: Products, as: :search
 
   # --- PACKS (BUNDLES) ---
   defdelegate list_bundles, to: Bundles, as: :list

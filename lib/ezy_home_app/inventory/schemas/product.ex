@@ -20,8 +20,8 @@ defmodule EzyHomeApp.Inventory.Schemas.Product do
   def changeset(product, attrs) do
     product
     |> cast(attrs, [:name, :sku, :description, :current_stock, :min_stock_threshold, :mercadolibre_id, :price, :company_id])
-    |> validate_required([:name, :sku, :current_stock, :company_id])
+    |> validate_required([:name, :sku, :price, :current_stock, :company_id])
     |> validate_number(:current_stock, greater_than_or_equal_to: 0)
-    |> unique_constraint(:sku)
+    |> unique_constraint([:sku, :company_id], message: "Este SKU ya existe en tu inventario")
   end
 end
